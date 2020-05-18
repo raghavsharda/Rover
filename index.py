@@ -26,9 +26,9 @@ def findNeighbours(xCoordinate,yCoordinate,gridSize):
 def createBinnedCorodinates(xAxis, yAxis):
 
     for coordinate in product(xAxis, yAxis):
-        # print(coordinate)
+        print(coordinate)
         # print(type(coordinate))
-        print (round(coordinate[0], 3),", ",round(coordinate[1], 3))
+        # print (round(coordinate[0], 3),", ",round(coordinate[1], 3))
 
 def getGrid(X,Y,gridSize):
     crimaRates,xAxis,yAxis=np.histogram2d(X, Y, bins = gridSize) 
@@ -63,7 +63,7 @@ def main():
     X,Y = getDataFromShapeFile()
     gridSize=2
     findNeighbours(-73.59 , 45.49 , gridSize )
-    getGrid(X,Y,gridSize)
+    # getGrid(X,Y,gridSize)
 
 
 if __name__ == '__main__':
