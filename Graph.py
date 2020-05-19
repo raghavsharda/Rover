@@ -46,8 +46,8 @@ def astar(graphcongif, initialCoordinate, finalCoordinate):
                 #     node.parent = current
 
 class Vertex:
-    def __init__(self,id,X,Y):
-        self.id = id
+    def __init__(self,X,Y):
+        # self.id = id
         self.parent = None
         self.xCoordinate = X
         self.yCoordinate = Y
@@ -56,9 +56,9 @@ class Vertex:
         self.F = 0
         self.neighbours = {'north' :{},'east':{},'south':{},'west':{}}
         self.createNeighbours()
-
-    def getId(self,xCoordinate,yCoordinate):
-        return self.id
+        
+    # def getId(self,xCoordinate,yCoordinate):
+        # return self.id
 
     def __str__(self):
         return str(self.xCoordinate),str(self.yCoordinate)
@@ -108,28 +108,36 @@ class Graph:
     def get_vertices(self):
         return self.vert_dict.keys()
 
+def createVertexes(listofcoordinates):
+    grid_vertex_objects = {}
+    vertex_id = 0
+    for coordinate in listofcoordinates:
+        vertex_id += 1
+        grid_vertex_objects[vertex_id] = Vertex(coordinate['X'],coordinate['Y'])
 
-if __name__ == '__main__':
+
+
+# if __name__ == '__main__':
     
-    g = Graph()
-    v1 = Vertex(1,-73.59,45.49)
-    v2 = Vertex(2,-73.59,45.51)
-    # v3 = Vertex(3,-73.59,45.53)
-    # v4 = Vertex(4,-73.57,45.49)
+#     g = Graph()
+#     v1 = Vertex(1,-73.59,45.49)
+#     v2 = Vertex(2,-73.59,45.51)
+#     # v3 = Vertex(3,-73.59,45.53)
+#     # v4 = Vertex(4,-73.57,45.49)
 
-    g.add_vertex(v1)
-    g.add_vertex(v2)
-    # g.add_vertex(v3)
-    # g.add_vertex(v4)
+#     g.add_vertex(v1)
+#     g.add_vertex(v2)
+#     # g.add_vertex(v3)
+#     # g.add_vertex(v4)
 
-    a = astar(g,v1,v2)
-    print(a)
-    # print("Number of current Vertices " , g.num_vertices)
-    # print("\n") 
-    # # print("Which is/are " , g.get_vertices()) 
-    # print("\n") 
-    # print("Its Neighbours are " , v1.get_Neighbours()) 
-    # print("\n") 
+#     a = astar(g,v1,v2)
+#     print(a)
+#     # print("Number of current Vertices " , g.num_vertices)
+#     # print("\n") 
+#     # # print("Which is/are " , g.get_vertices()) 
+#     # print("\n") 
+#     # print("Its Neighbours are " , v1.get_Neighbours()) 
+#     # print("\n") 
 
 
 
