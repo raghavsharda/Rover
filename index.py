@@ -4,6 +4,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from itertools import product
 from matplotlib.colors import ListedColormap
+from sklearn.feature_extraction import DictVectorizer
 from Graph import *
 
 def createBinnedCorodinates(xAxis, yAxis):
@@ -42,19 +43,13 @@ def main():
     # val = float(input("Enter cell size in in format 0.00F: "))
     # threshold = float(input("Enter threshold value Eg. 50% "))
     X,Y = getDataFromShapeFile()
-    gridSize=1
+    gridSize=2
     thresohold = 49 # meaning 50 percentile
     # gridSize=val
     xAxis,yAxis=createGridGraph(X,Y,gridSize,thresohold)
     listofcoordinates = createBinnedCorodinates(xAxis, yAxis)
-    createVertexes(listofcoordinates)
-    # g = Graph()
-    # v1 = Vertex(1,-73.59,45.49)
-    # v2 = Vertex(2,-73.59,45.51)
-    # g.add_vertex(v1)
-    # g.add_vertex(v2)
-    # a = astar(g,v1,v2)
-    # print(a)
+    dictOfVertexObjects = createVertex(listofcoordinates)
+    makeFriends(dictOfVertexObjects)
 
 if __name__ == '__main__':
     main()

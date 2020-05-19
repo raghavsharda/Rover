@@ -1,3 +1,5 @@
+import numpy as np
+
 def astar(graphcongif, initialCoordinate, finalCoordinate):
     
     # Initialize both open and closed list
@@ -54,141 +56,80 @@ class Vertex:
         self.H = 0
         self.G = 0
         self.F = 0
-        self.neighbours = {'north' :{},'east':{},'south':{},'west':{}}
+        self.neighbours = {'north':{},'east':{},'south':{},'west':{}}
+        self.egdeList = []
         self.createNeighbours()
-        
-    # def getId(self,xCoordinate,yCoordinate):
-        # return self.id
+
+    def setEgdeList(self ,node):
+        self.egdeList.append(node)
 
     def __str__(self):
         return str(self.xCoordinate),str(self.yCoordinate)
 
+    def getId(self,X,Y):
+        return self
+
     def createNeighbours(self):
-        gridSize = 2
-        eastNeighbour=self.xCoordinate+(gridSize*(1/100))
-        westNeighbour=self.xCoordinate-(gridSize*(1/100))
-        northNeighbour=self.yCoordinate+(gridSize*(1/100))
-        southNeighbour=self.yCoordinate-(gridSize*(1/100))
+        
+        # To-Do make this section more dynamic
+        distance = 0.04
+        gridsize = 20
+        # gridsize = 20
+        eastNeighbour=self.xCoordinate+(distance/gridsize)
+        westNeighbour=self.xCoordinate-(distance/gridsize)
+        northNeighbour=self.yCoordinate+(distance/gridsize)
+        southNeighbour=self.yCoordinate-(distance/gridsize)
 
-        self.neighbours["north"]["xCoordinate"] = self.xCoordinate
-        self.neighbours['north']['yCoordinate'] = northNeighbour
+        self.neighbours["north"]["xCoordinate"] = round(self.xCoordinate,3)
+        self.neighbours['north']['yCoordinate'] = round(northNeighbour,3)
 
-        self.neighbours['east']['xCoordinate'] = eastNeighbour
-        self.neighbours['east']['yCoordinate'] = self.yCoordinate
+        self.neighbours['east']['xCoordinate'] = round(eastNeighbour,3)
+        self.neighbours['east']['yCoordinate'] = round(self.yCoordinate,3)
 
-        self.neighbours['south']['xCoordinate'] = self.xCoordinate
-        self.neighbours['south']['yCoordinate'] = southNeighbour
+        self.neighbours['south']['xCoordinate'] = round(self.xCoordinate,3)
+        self.neighbours['south']['yCoordinate'] = round(southNeighbour,3)
 
-        self.neighbours['west']['xCoordinate'] = westNeighbour
-        self.neighbours['west']['yCoordinate'] = self.yCoordinate
+        self.neighbours['west']['xCoordinate'] = round(westNeighbour,3)
+        self.neighbours['west']['yCoordinate'] = round(self.yCoordinate,3)
 
-        # self.neighbours["north"] = self.xCoordinate,northNeighbour
-        # self.neighbours['east'] = eastNeighbour,self.yCoordinate
-        # self.neighbours['south'] = self.xCoordinate,southNeighbour
-        # self.neighbours['west'] = westNeighbour,self.yCoordinate
-
-        # print("East"   ,eastNeighbour,self.yCoordinate)
-        # print("West"    ,westNeighbour,self.yCoordinate)
-        # print("North"   ,self.xCoordinate,northNeighbour)
-        # print("South"   ,self.xCoordinate,southNeighbour)
-
-    def get_Neighbours(self):
-        return self.neighbours.values()
-
-class Graph:
-    def __init__(self):
-        self.num_vertices = 0
-        self.vert_dict = {}
-
-    def add_vertex(self,vertex):
-        self.num_vertices = self.num_vertices + 1
-        self.vert_dict[vertex] = vertex
-        # return new_vertex
-    
-    def get_vertices(self):
-        return self.vert_dict.keys()
-
-def createVertexes(listofcoordinates):
+def createVertex(listofcoordinates):
     grid_vertex_objects = {}
     vertex_id = 0
     for coordinate in listofcoordinates:
         vertex_id += 1
         grid_vertex_objects[vertex_id] = Vertex(coordinate['X'],coordinate['Y'])
+        # grid_vertex_objects[vertex_id].update()Vertex(coordinate['X'],coordinate['Y'])
+    return grid_vertex_objects
 
+def createMatrix(dictOfVertexObjects):
+    data = list(dictOfVertexObjects.items()) 
+    an_array = np.array(data)
+    print(an_array)
 
+def makeFriends(dictOfVertexObjects):
+    # iterate over dict of objects
+    for node in dictOfVertexObjects.values():
+        # check if neighbours are already exsisting nodes
+        for x in dictOfVertexObjects.values():
+            if node.neighbours['north']['xCoordinate'] == x.xCoordinate and node.neighbours['north']['yCoordinate'] == x.yCoordinate:
+                node.egdeList.append(x)
+            if node.neighbours['east']['xCoordinate'] == x.xCoordinate and node.neighbours['east']['yCoordinate'] == x.yCoordinate:
+                node.setEgdeList(x)
+            if node.neighbours['south']['xCoordinate'] == x.xCoordinate and node.neighbours['south']['yCoordinate'] == x.yCoordinate:
+                node.setEgdeList(x)
+            if node.neighbours['west']['xCoordinate'] == x.xCoordinate and node.neighbours['west']['yCoordinate'] == x.yCoordinate:
+                node.setEgdeList(x)
+            else:
+                pass
+# class Graph:
+#     def __init__(self):
+#         self.num_vertices = 0
+#         self.vert_dict = {}
 
-# if __name__ == '__main__':
+#     def add_vertex(self,vertex):
+#         self.num_vertices = self.num_vertices + 1
+#         self.vert_dict[vertex] = vertex
+#         # return new_vertex
     
-#     g = Graph()
-#     v1 = Vertex(1,-73.59,45.49)
-#     v2 = Vertex(2,-73.59,45.51)
-#     # v3 = Vertex(3,-73.59,45.53)
-#     # v4 = Vertex(4,-73.57,45.49)
-
-#     g.add_vertex(v1)
-#     g.add_vertex(v2)
-#     # g.add_vertex(v3)
-#     # g.add_vertex(v4)
-
-#     a = astar(g,v1,v2)
-#     print(a)
-#     # print("Number of current Vertices " , g.num_vertices)
-#     # print("\n") 
-#     # # print("Which is/are " , g.get_vertices()) 
-#     # print("\n") 
-#     # print("Its Neighbours are " , v1.get_Neighbours()) 
-#     # print("\n") 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#   for grapg class
-    # def add_neighbor(self, neighbor, weight=0):
-    #     self.adjacent[neighbor] = weight
-
-    # def get_connections(self):
-    #     return self.adjacent.keys()  
-
-    # def get_id(self):
-    #     return self.id
-
-    # def get_weight(self, neighbor):
-    #     return self.adjacent[neighbor]
-
-
-
-
-
-
-    # g.add_edge('a', 'b', 7)  
-    # g.add_edge('a', 'c', 9)
-    # g.add_edge('a', 'f', 14)
-    # g.add_edge('b', 'c', 10)
-    # g.add_edge('b', 'd', 15)
-    # g.add_edge('c', 'd', 11)
-    # g.add_edge('c', 'f', 2)
-    # g.add_edge('d', 'e', 6)
-    # g.add_edge('e', 'f', 9)
-
-    # for v in g:
-    #     for w in v.get_connections():
-    #         vid = v.get_id()
-    #         wid = w.get_id()
-    #         print '( %s , %s, %3d)'  % ( vid, wid, v.get_weight(w))
-
-    # for v in g:
-    #     print 'g.vert_dict[%s]=%s' %(v.get_id(), g.vert_dict[v.get_id()])
+#     def get_vertices(self):
+#         return self.vert_dict.keys()
