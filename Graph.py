@@ -48,15 +48,15 @@ def astar(graphcongif, initialCoordinate, finalCoordinate):
                 #     node.parent = current
 
 class Vertex:
-    def __init__(self,X,Y):
-        # self.id = id
+    def __init__(self,X,Y): 
+
         self.parent = None
         self.xCoordinate = X
         self.yCoordinate = Y
         self.H = 0
         self.G = 0
         self.F = 0
-        self.neighbours = {'north':{},'east':{},'south':{},'west':{}}
+        self.neighbours = {'north':{},'north-east':{},'east':{},'south-east':{},'south':{},'south-west':{},'west':{},'north-west':{}}
         self.egdeList = []
         self.createNeighbours()
 
@@ -73,24 +73,36 @@ class Vertex:
         
         # To-Do make this section more dynamic
         distance = 0.04
-        gridsize = 20
+        gridsize = 2
         # gridsize = 20
-        eastNeighbour=self.xCoordinate+(distance/gridsize)
-        westNeighbour=self.xCoordinate-(distance/gridsize)
         northNeighbour=self.yCoordinate+(distance/gridsize)
+        eastNeighbour=self.xCoordinate+(distance/gridsize)
         southNeighbour=self.yCoordinate-(distance/gridsize)
+        westNeighbour=self.xCoordinate-(distance/gridsize)
 
         self.neighbours["north"]["xCoordinate"] = round(self.xCoordinate,3)
         self.neighbours['north']['yCoordinate'] = round(northNeighbour,3)
 
+        self.neighbours["north-east"]["xCoordinate"] = round(eastNeighbour,3)
+        self.neighbours['north-east']['yCoordinate'] = round(northNeighbour,3)
+
         self.neighbours['east']['xCoordinate'] = round(eastNeighbour,3)
         self.neighbours['east']['yCoordinate'] = round(self.yCoordinate,3)
+
+        self.neighbours['south-east']['xCoordinate'] = round(eastNeighbour,3)
+        self.neighbours['south-east']['yCoordinate'] = round(southNeighbour,3)
 
         self.neighbours['south']['xCoordinate'] = round(self.xCoordinate,3)
         self.neighbours['south']['yCoordinate'] = round(southNeighbour,3)
 
+        self.neighbours['south-west']['xCoordinate'] = round(westNeighbour,3)
+        self.neighbours['south-west']['yCoordinate'] = round(southNeighbour,3)
+
         self.neighbours['west']['xCoordinate'] = round(westNeighbour,3)
         self.neighbours['west']['yCoordinate'] = round(self.yCoordinate,3)
+
+        self.neighbours["north-west"]["xCoordinate"] = round(westNeighbour,3)
+        self.neighbours['north-west']['yCoordinate'] = round(northNeighbour,3)
 
 def createVertex(listofcoordinates):
     grid_vertex_objects = {}
@@ -113,14 +125,23 @@ def makeFriends(dictOfVertexObjects):
         for x in dictOfVertexObjects.values():
             if node.neighbours['north']['xCoordinate'] == x.xCoordinate and node.neighbours['north']['yCoordinate'] == x.yCoordinate:
                 node.egdeList.append(x)
+            if node.neighbours['north-east']['xCoordinate'] == x.xCoordinate and node.neighbours['north-east']['yCoordinate'] == x.yCoordinate:
+                node.egdeList.append(x)
             if node.neighbours['east']['xCoordinate'] == x.xCoordinate and node.neighbours['east']['yCoordinate'] == x.yCoordinate:
+                node.setEgdeList(x)
+            if node.neighbours['south-east']['xCoordinate'] == x.xCoordinate and node.neighbours['south-east']['yCoordinate'] == x.yCoordinate:
                 node.setEgdeList(x)
             if node.neighbours['south']['xCoordinate'] == x.xCoordinate and node.neighbours['south']['yCoordinate'] == x.yCoordinate:
                 node.setEgdeList(x)
             if node.neighbours['west']['xCoordinate'] == x.xCoordinate and node.neighbours['west']['yCoordinate'] == x.yCoordinate:
                 node.setEgdeList(x)
+            if node.neighbours['south-west']['xCoordinate'] == x.xCoordinate and node.neighbours['south-west']['yCoordinate'] == x.yCoordinate:
+                node.setEgdeList(x)
+            if node.neighbours['north-west']['xCoordinate'] == x.xCoordinate and node.neighbours['north-west']['yCoordinate'] == x.yCoordinate:
+                node.egdeList.append(x)
             else:
                 pass
+
 # class Graph:
 #     def __init__(self):
 #         self.num_vertices = 0

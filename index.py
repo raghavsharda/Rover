@@ -50,6 +50,6 @@ def main():
     listofcoordinates = createBinnedCorodinates(xAxis, yAxis)
     dictOfVertexObjects = createVertex(listofcoordinates)
     makeFriends(dictOfVertexObjects)
-
+    print("break")
 if __name__ == '__main__':
     main()
