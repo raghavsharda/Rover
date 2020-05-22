@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 def astar(graphcongif, initialCoordinate, finalCoordinate):
     
@@ -48,7 +49,7 @@ def astar(graphcongif, initialCoordinate, finalCoordinate):
                 #     node.parent = current
 
 class Vertex:
-    def __init__(self,X,Y): 
+    def __init__(self,X,Y,xdistance,ydistance,gridSize): 
 
         self.parent = None
         self.xCoordinate = X
@@ -57,11 +58,8 @@ class Vertex:
         self.G = 0
         self.F = 0
         self.neighbours = {'north':{},'north-east':{},'east':{},'south-east':{},'south':{},'south-west':{},'west':{},'north-west':{}}
-        self.egdeList = []
-        self.createNeighbours()
-
-    def setEgdeList(self ,node):
-        self.egdeList.append(node)
+        self.egdeList = {'north':{},'north-east':{},'east':{},'south-east':{},'south':{},'south-west':{},'west':{},'north-west':{}}
+        self.createNeighbours(xdistance,gridSize)
 
     def __str__(self):
         return str(self.xCoordinate),str(self.yCoordinate)
@@ -69,16 +67,13 @@ class Vertex:
     def getId(self,X,Y):
         return self
 
-    def createNeighbours(self):
+    def createNeighbours(self,distance,gridSize):
         
-        # To-Do make this section more dynamic
-        distance = 0.04
-        gridsize = 2
-        # gridsize = 20
-        northNeighbour=self.yCoordinate+(distance/gridsize)
-        eastNeighbour=self.xCoordinate+(distance/gridsize)
-        southNeighbour=self.yCoordinate-(distance/gridsize)
-        westNeighbour=self.xCoordinate-(distance/gridsize)
+        distance = np.floor(distance)
+        northNeighbour=self.yCoordinate+(distance/gridSize)
+        eastNeighbour=self.xCoordinate+(distance/gridSize)
+        southNeighbour=self.yCoordinate-(distance/gridSize)
+        westNeighbour=self.xCoordinate-(distance/gridSize)
 
         self.neighbours["north"]["xCoordinate"] = round(self.xCoordinate,3)
         self.neighbours['north']['yCoordinate'] = round(northNeighbour,3)
@@ -104,13 +99,14 @@ class Vertex:
         self.neighbours["north-west"]["xCoordinate"] = round(westNeighbour,3)
         self.neighbours['north-west']['yCoordinate'] = round(northNeighbour,3)
 
-def createVertex(listofcoordinates):
+def createVertex(listofcoordinates,xdistance,ydistance,gridSize):
     grid_vertex_objects = {}
     vertex_id = 0
     for coordinate in listofcoordinates:
+        x = round(coordinate['X'],3)
+        y = round(coordinate['Y'],3)
+        grid_vertex_objects[vertex_id] = Vertex(x,y,xdistance,ydistance,gridSize)
         vertex_id += 1
-        grid_vertex_objects[vertex_id] = Vertex(coordinate['X'],coordinate['Y'])
-        # grid_vertex_objects[vertex_id].update()Vertex(coordinate['X'],coordinate['Y'])
     return grid_vertex_objects
 
 def createMatrix(dictOfVertexObjects):
@@ -124,33 +120,98 @@ def makeFriends(dictOfVertexObjects):
         # check if neighbours are already exsisting nodes
         for x in dictOfVertexObjects.values():
             if node.neighbours['north']['xCoordinate'] == x.xCoordinate and node.neighbours['north']['yCoordinate'] == x.yCoordinate:
-                node.egdeList.append(x)
+                node.egdeList['north'] = x
             if node.neighbours['north-east']['xCoordinate'] == x.xCoordinate and node.neighbours['north-east']['yCoordinate'] == x.yCoordinate:
-                node.egdeList.append(x)
+                node.egdeList['north-east'] = x
             if node.neighbours['east']['xCoordinate'] == x.xCoordinate and node.neighbours['east']['yCoordinate'] == x.yCoordinate:
-                node.setEgdeList(x)
+                node.egdeList['east'] = x
             if node.neighbours['south-east']['xCoordinate'] == x.xCoordinate and node.neighbours['south-east']['yCoordinate'] == x.yCoordinate:
-                node.setEgdeList(x)
+                node.egdeList['south-east'] = x
             if node.neighbours['south']['xCoordinate'] == x.xCoordinate and node.neighbours['south']['yCoordinate'] == x.yCoordinate:
-                node.setEgdeList(x)
+                node.egdeList['south'] = x
             if node.neighbours['west']['xCoordinate'] == x.xCoordinate and node.neighbours['west']['yCoordinate'] == x.yCoordinate:
-                node.setEgdeList(x)
+                node.egdeList['west'] = x
             if node.neighbours['south-west']['xCoordinate'] == x.xCoordinate and node.neighbours['south-west']['yCoordinate'] == x.yCoordinate:
-                node.setEgdeList(x)
+                node.egdeList['south-west'] = x
             if node.neighbours['north-west']['xCoordinate'] == x.xCoordinate and node.neighbours['north-west']['yCoordinate'] == x.yCoordinate:
-                node.egdeList.append(x)
+                node.egdeList['north-west'] = x
             else:
                 pass
 
-# class Graph:
-#     def __init__(self):
-#         self.num_vertices = 0
-#         self.vert_dict = {}
+def getKeyforVertex(X,Y):
+        key = str(X)+str(Y)
+        key = key.replace("-", "")
+        key = key.replace(".", "")
+        return key
 
-#     def add_vertex(self,vertex):
-#         self.num_vertices = self.num_vertices + 1
-#         self.vert_dict[vertex] = vertex
-#         # return new_vertex
-    
-#     def get_vertices(self):
-#         return self.vert_dict.keys()
+def getKeyforEdge(focus,neighbour):
+        x = focus.xCoordinate + neighbour.xCoordinate
+        y = focus.yCoordinate + neighbour.yCoordinate
+        key = str(x)+str(y)
+        key = key.replace("-", "")
+        key = key.replace(".", "")
+        print(key)
+        return key
+
+class Edge:
+    def __init__(self,node1,node2):
+        self.vertex_to = node1
+        self.vertex_from = node2
+        self.cost = 0
+        self.isRed = False
+        self.isGreen = False
+
+    def setIsRed(self,decision):
+        self.isRed = decision
+
+def setHighCrimeAreas(crimeRates,dictOfVertexObjects,gridSize,threshold):
+    keysofdict = list(dictOfVertexObjects)
+    grid_vertex_edges = {}
+    edge_id = 0
+    l = -1
+    for crimes in crimeRates:
+        # skip the nth postion
+        l = l + 1
+        for x in crimes:
+            nodeAtFocus = dictOfVertexObjects[keysofdict[l]]
+            print("this is focus node" ,nodeAtFocus.xCoordinate ,nodeAtFocus.yCoordinate)
+            northNode = nodeAtFocus.egdeList['north']
+            northEastNode = nodeAtFocus.egdeList['north-east']
+            eastNode = nodeAtFocus.egdeList['east']
+
+            if bool(northNode):
+                grid_vertex_edges[edge_id] = Edge(nodeAtFocus,northNode)
+                edge_id+=1
+                print("a called")
+
+            if bool(northEastNode):
+                grid_vertex_edges[edge_id] = Edge(nodeAtFocus,northEastNode)
+                edge_id+=1
+                print("b called")        
+           
+            if bool(eastNode):
+                grid_vertex_edges[edge_id] = Edge(nodeAtFocus,eastNode)
+                edge_id+=1
+                print("c called")
+
+            if bool(northNode) and bool(northEastNode):
+                grid_vertex_edges[edge_id] = Edge(northNode,northEastNode)
+                edge_id+=1
+                print("d called")
+
+            if bool(eastNode) and bool(northEastNode):
+                grid_vertex_edges[edge_id] = Edge(eastNode,northEastNode)
+                edge_id+=1
+                print("e called")
+
+            if bool(eastNode) and bool(northNode):
+                grid_vertex_edges[edge_id] = Edge(eastNode,northNode)
+                edge_id+=1
+                print("f called")
+            
+            l = l + 1
+
+    # print(len(grid_vertex_edges))
+    return grid_vertex_edges
+
+# grid_vertex_edges[getKeyforEdge(nodeAtFocus,northNode)].setIsRed(True)

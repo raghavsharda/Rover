@@ -10,46 +10,49 @@ from Graph import *
 def createBinnedCorodinates(xAxis, yAxis):
     listofcoordinates=[]
     for coordinate in product(xAxis, yAxis):
-        xydict = {'X':round(coordinate[0],3),'Y':round(coordinate[1],3)}
+        xydict = {'X':coordinate[0],'Y': coordinate[1]}
         listofcoordinates.append(xydict)
-    
+    print(len(listofcoordinates))
     return listofcoordinates
 
 def createGridGraph(X,Y,gridSize ,thresohold):
-    crimaRates,xAxis,yAxis=np.histogram2d(X, Y, bins = gridSize) 
-    threshold_percentile = np.percentile(crimaRates,thresohold)
+    crimeRates,xAxis,yAxis=np.histogram2d(X, Y, bins = gridSize) 
+    threshold_percentile = np.percentile(crimeRates,thresohold)
     cmap22 = mpl.colors.ListedColormap(['#D68910'])
     cmap22.set_under('#D68910',1)
     xyz = plt.hist2d(X,Y,bins=gridSize,cmin=threshold_percentile,cmap=cmap22)
-    crimaRates = np.transpose(crimaRates)[::-1]
+    # crimeRates = np.transpose(crimeRates)[::-1]
     plt.title('TITLE', fontweight ="bold")
     plt.show()
-    return(xAxis, yAxis)
+    return(crimeRates,xAxis, yAxis,threshold_percentile)
 
 def getDataFromShapeFile():
-    sf = shp.Reader(r'Shape\crime_dt.shp',encoding="ISO-8859-1")
+    sf = shp.Reader(r'Shape\crime_dt.shp')
     X = []
     Y = []
     for i in range(len(sf.shapes())):
         s = sf.shape(i)
         geoj = s.__geo_interface__
         x, y = geoj["coordinates"]
-        X.append(round(x, 4))
-        Y.append(round(y, 4))
+        X.append(round(x, 3))
+        Y.append(round(y, 3))
 
     return(X,Y)
 
 def main():
     # val = float(input("Enter cell size in in format 0.00F: "))
-    # threshold = float(input("Enter threshold value Eg. 50% "))
+    # threshold = float(input("Enter threshold value Eg. 30% "))
     X,Y = getDataFromShapeFile()
-    gridSize=2
-    thresohold = 49 # meaning 50 percentile
+    xdistance = max(X)-min(X)
+    ydistance = max(Y)-min(Y)
+    gridSize = 20
+    thresohold = 50 # meaning 30 percentile
     # gridSize=val
-    xAxis,yAxis=createGridGraph(X,Y,gridSize,thresohold)
+    crimeRates,xAxis,yAxis,threshold_percentile=createGridGraph(X,Y,gridSize,thresohold)
     listofcoordinates = createBinnedCorodinates(xAxis, yAxis)
-    dictOfVertexObjects = createVertex(listofcoordinates)
+    dictOfVertexObjects = createVertex(listofcoordinates,xdistance,ydistance,gridSize)
     makeFriends(dictOfVertexObjects)
+    grid_vertex_edges = setHighCrimeAreas(crimeRates,dictOfVertexObjects,gridSize,threshold_percentile)
     print("break")
 if __name__ == '__main__':
     main()
