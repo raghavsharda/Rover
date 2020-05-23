@@ -21,7 +21,7 @@ def createGridGraph(X,Y,gridSize ,thresohold):
     cmap22 = mpl.colors.ListedColormap(['#D68910'])
     cmap22.set_under('#D68910',1)
     xyz = plt.hist2d(X,Y,bins=gridSize,cmin=threshold_percentile,cmap=cmap22)
-    # crimeRates = np.transpose(crimeRates)[::-1]
+    # crimeRates = np.transpose(crimeRates)[::-1] # for visual, to see crime rate.
     plt.title('TITLE', fontweight ="bold")
     plt.show()
     return(crimeRates,xAxis, yAxis,threshold_percentile)
@@ -40,19 +40,21 @@ def getDataFromShapeFile():
     return(X,Y)
 
 def main():
-    # val = float(input("Enter cell size in in format 0.00F: "))
+    # gridSize = float(input("Enter cell size in in format 0.00F: "))
     # threshold = float(input("Enter threshold value Eg. 30% "))
     X,Y = getDataFromShapeFile()
     xdistance = max(X)-min(X)
     ydistance = max(Y)-min(Y)
-    gridSize = 20
-    thresohold = 50 # meaning 30 percentile
+    # Setting hard values for testing
+    gridSize = 2
+    threshold = 50
     # gridSize=val
-    crimeRates,xAxis,yAxis,threshold_percentile=createGridGraph(X,Y,gridSize,thresohold)
+    crimeRates,xAxis,yAxis,threshold_percentile=createGridGraph(X,Y,gridSize,threshold)
     listofcoordinates = createBinnedCorodinates(xAxis, yAxis)
     dictOfVertexObjects = createVertex(listofcoordinates,xdistance,ydistance,gridSize)
     makeFriends(dictOfVertexObjects)
     grid_vertex_edges = setHighCrimeAreas(crimeRates,dictOfVertexObjects,gridSize,threshold_percentile)
     print("break")
+
 if __name__ == '__main__':
     main()
