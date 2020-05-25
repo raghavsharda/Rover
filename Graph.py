@@ -1,52 +1,65 @@
 import numpy as np
 import math
 
-def astar(graphcongif, initialCoordinate, finalCoordinate):
+def astar(dictOfVertexObjects,grid_vertex_edges,initialNodeRef,finalNodeRef):
     
     # Initialize both open and closed list
     open_list = []
     closed_list = []
 
     # Add the start node
-    open_list.append(initialCoordinate)
+    open_list.append(initialNodeRef)
 
     # Loop until you find the end
     while len(open_list) > 0:
         
         # Get the current node
-        current = min(open_list, key=lambda o:o.G + o.H)
+        currentNode = min(open_list, key=lambda o:o.G + o.H)
 
         #If it is the item we want, retrace the path and return it
-        if current.id == finalCoordinate.id:
+        if currentNode.isEquals(finalNodeRef):
             path = []
-            while current.parent:
-                path.append(current)
-                current = current.parent
-            path.append(current)
+            while currentNode.parent:
+                path.append(currentNode)
+                currentNode = currentNode.parent
+            path.append(currentNode)
             return path[::-1]
         
         #Remove the item from the open set
-        open_list.remove(current)
+        open_list.remove(currentNode)
 
         #Add it to the closed set
-        closed_list.append(current)
+        closed_list.append(currentNode)
 
         # Loop through the node's children/neighbour
-        for direction,coordinatesOfChildren in current.neighbours.items():
-            #If the children is already in the closed set, skip it
-            for node in closed_list:
-                if (coordinatesOfChildren['xCoordinate'] == node.xCoordinate) and (coordinatesOfChildren['yCoordinate'] == node.yCoordinate):
+        for direction,neighbourNodeRef in currentNode.egdeList.items():
+            if bool(currentNode.egdeList[direction]):
+                #If the children is already in the closed set, skip it
+                if neighbourNodeRef in closed_list:
                     print ("Node has already been visited")
                     continue
-            
-            for node in open_list:
+                
+                if neighbourNodeRef in open_list:
+                    # Check if we beat the G score 
+                    new_g = currentNode.G + move_cost(currentNode,neighbourNodeRef,dictOfVertexObjects,grid_vertex_edges)
+                    if neighbourNodeRef.G > new_g:
+                        #If so, update the node to have a new parent
+                        neighbourNodeRef.G = new_g
+                        neighbourNodeRef.parent = currentNode
+                else:
+                    # If it isn't in the open set, calculate the G and H score for the node
+                    neighbourNodeRef.G = currentNode.G + move_cost(currentNode,neighbourNodeRef,dictOfVertexObjects,grid_vertex_edges)
+                    neighbourNodeRef.H = manhattan(neighbourNodeRef, finalNodeRef)
+                    #Set the parent to our current item
+                    neighbourNodeRef.parent = currentNode
+                    #Add it to the set
+                    open_list.append(neighbourNodeRef)
+            else:
                 continue
-                # Check if we beat the G score 
-                # new_g = current.G + current.move_cost()
-                # if node.G > new_g:
-                #     #If so, update the node to have a new parent
-                #     node.G = new_g
-                #     node.parent = current
+    raise ValueError('No Path Found')
+
+def manhattan(Vertex1,Vertex2):
+    return abs(Vertex1.xCoordinate - Vertex2.xCoordinate) + abs(Vertex1.yCoordinate - Vertex2.yCoordinate)              
 
 class Vertex:
     def __init__(self,X,Y,xdistance,ydistance,gridSize): 
@@ -67,9 +80,15 @@ class Vertex:
     def getId(self,X,Y):
         return self
 
+    def isEquals(self,otherNode):
+        if(self.xCoordinate == otherNode.xCoordinate and self.yCoordinate == otherNode.yCoordinate):
+            return True
+        else:
+            return False
+
     def createNeighbours(self,distance,gridSize):
         
-        distance = np.floor(distance)
+        distance = round(distance,2)
         northNeighbour=self.yCoordinate+(distance/gridSize)
         eastNeighbour=self.xCoordinate+(distance/gridSize)
         southNeighbour=self.yCoordinate-(distance/gridSize)
@@ -109,6 +128,7 @@ def createVertex(listofcoordinates,xdistance,ydistance,gridSize):
         vertex_id += 1
     return grid_vertex_objects
 
+# Not being used right now
 def createMatrix(dictOfVertexObjects):
     data = list(dictOfVertexObjects.items()) 
     an_array = np.array(data)
@@ -119,24 +139,33 @@ def makeFriends(dictOfVertexObjects):
     for node in dictOfVertexObjects.values():
         # check if neighbours are already exsisting nodes
         for x in dictOfVertexObjects.values():
-            if node.neighbours['north']['xCoordinate'] == x.xCoordinate and node.neighbours['north']['yCoordinate'] == x.yCoordinate:
-                node.egdeList['north'] = x
-            if node.neighbours['north-east']['xCoordinate'] == x.xCoordinate and node.neighbours['north-east']['yCoordinate'] == x.yCoordinate:
-                node.egdeList['north-east'] = x
-            if node.neighbours['east']['xCoordinate'] == x.xCoordinate and node.neighbours['east']['yCoordinate'] == x.yCoordinate:
-                node.egdeList['east'] = x
-            if node.neighbours['south-east']['xCoordinate'] == x.xCoordinate and node.neighbours['south-east']['yCoordinate'] == x.yCoordinate:
-                node.egdeList['south-east'] = x
-            if node.neighbours['south']['xCoordinate'] == x.xCoordinate and node.neighbours['south']['yCoordinate'] == x.yCoordinate:
-                node.egdeList['south'] = x
-            if node.neighbours['west']['xCoordinate'] == x.xCoordinate and node.neighbours['west']['yCoordinate'] == x.yCoordinate:
-                node.egdeList['west'] = x
-            if node.neighbours['south-west']['xCoordinate'] == x.xCoordinate and node.neighbours['south-west']['yCoordinate'] == x.yCoordinate:
-                node.egdeList['south-west'] = x
-            if node.neighbours['north-west']['xCoordinate'] == x.xCoordinate and node.neighbours['north-west']['yCoordinate'] == x.yCoordinate:
-                node.egdeList['north-west'] = x
-            else:
-                pass
+            if not (node.isEquals(x)):
+                if node.neighbours['north']['xCoordinate'] == x.xCoordinate and node.neighbours['north']['yCoordinate'] == x.yCoordinate:
+                    node.egdeList['north'] = x
+                    continue
+                if node.neighbours['north-east']['xCoordinate'] == x.xCoordinate and node.neighbours['north-east']['yCoordinate'] == x.yCoordinate:
+                    node.egdeList['north-east'] = x
+                    continue
+                if node.neighbours['east']['xCoordinate'] == x.xCoordinate and node.neighbours['east']['yCoordinate'] == x.yCoordinate:
+                    node.egdeList['east'] = x
+                    continue
+                if node.neighbours['south-east']['xCoordinate'] == x.xCoordinate and node.neighbours['south-east']['yCoordinate'] == x.yCoordinate:
+                    node.egdeList['south-east'] = x
+                    continue
+                if node.neighbours['south']['xCoordinate'] == x.xCoordinate and node.neighbours['south']['yCoordinate'] == x.yCoordinate:
+                    node.egdeList['south'] = x
+                    continue
+                if node.neighbours['west']['xCoordinate'] == x.xCoordinate and node.neighbours['west']['yCoordinate'] == x.yCoordinate:
+                    node.egdeList['west'] = x
+                    continue
+                if node.neighbours['south-west']['xCoordinate'] == x.xCoordinate and node.neighbours['south-west']['yCoordinate'] == x.yCoordinate:
+                    node.egdeList['south-west'] = x
+                    continue
+                if node.neighbours['north-west']['xCoordinate'] == x.xCoordinate and node.neighbours['north-west']['yCoordinate'] == x.yCoordinate:
+                    node.egdeList['north-west'] = x
+                    continue
+                else:
+                    pass
 
 # Not being used right now
 def getKeyforVertex(X,Y):
@@ -153,7 +182,6 @@ def getKeyforEdge(focus,neighbour):
         key = x+y
         # key = key.replace("-", "")
         # key = key.replace(".", "")
-        print(key)
         return key
 
 class Edge:
@@ -187,7 +215,7 @@ def setHighCrimeAreas(crimeRates,dictOfVertexObjects,gridSize,threshold):
         l = l + 1
         for crime in crimes:
             nodeAtFocus = dictOfVertexObjects[keysofdict[l]]
-            print("This is focus node" ,nodeAtFocus.xCoordinate ,nodeAtFocus.yCoordinate)
+            # print("This is focus node" ,nodeAtFocus.xCoordinate ,nodeAtFocus.yCoordinate)
             northNode = nodeAtFocus.egdeList['north']
             northEastNode = nodeAtFocus.egdeList['north-east']
             eastNode = nodeAtFocus.egdeList['east']
@@ -284,14 +312,68 @@ def setHighCrimeAreas(crimeRates,dictOfVertexObjects,gridSize,threshold):
             l = l + 1
 
     # set cost for each type of edge
-    for edge in grid_vertex_edges.values():
+    for edgekey,edge in grid_vertex_edges.items():
         if edge.isRed is True and edge.isGreen is True and edge.isDiagonal is False:
             edge.setCost(1.3)
-        if edge.isRed is False and edge.isGreen is True and edge.isDiagonal is False:
+            # print("For edge" , edgekey , "Cost = " , edge.cost)
+        elif edge.isRed is True and edge.isGreen is False and edge.isDiagonal is False:
+            edge.setCost(1.3)
+            # print("For edge" , edgekey , "Cost = " , edge.cost)
+        elif edge.isRed is False and edge.isGreen is True and edge.isDiagonal is False:
             edge.setCost(1.0)
-        if edge.isRed is True and edge.isGreen is False and edge.isDiagonal is True:
+            # print("For edge" , edgekey , "Cost = " , edge.cost)
+        elif edge.isRed is True and edge.isGreen is False and edge.isDiagonal is True:
             edge.setCost(1.5)
-
-    # Put break here to Debug , and expand and see grid_vertex_edges
-    print("Total number of edges ",len(grid_vertex_edges))
+            # print("For edge" , edgekey , "Cost = " , edge.cost)
+        elif edge.isRed is False and edge.isGreen is True and edge.isDiagonal is True:
+            edge.setCost(1.5)
+            # print("For edge" , edgekey , "Cost = " , edge.cost)
+        else:
+            print("No cost assigned to " , edgekey)
+    # print("Total number of edges ",len(grid_vertex_edges))
     return grid_vertex_edges
+
+def searchVertexKeys(startingPoint,finalPoint,dictOfVertexObjects):
+    startingPoint = startingPoint.split(",")
+    finalPoint = finalPoint.split(",")
+    x1=startingPoint[0]
+    y1=startingPoint[1]
+    x2=finalPoint[0]
+    y2=finalPoint[1]
+    vertexKey1 = None
+    vertexRef1 = None
+    vertexKey2 = None
+    vertexRef2 = None
+    for key,vertex in dictOfVertexObjects.items():
+        if vertex.xCoordinate == float(x1) and vertex.yCoordinate == float(y1):
+            vertexKey1 = key
+            vertexRef1 = vertex
+
+        elif vertex.xCoordinate == float(x2) and vertex.yCoordinate == float(y2):
+            vertexKey2 = key
+            vertexRef2 = vertex
+    
+    return vertexKey1,vertexRef1, vertexKey2,vertexRef2
+    
+def move_cost(currentNode,neighbourNodeRef,dictOfVertexObjects,grid_vertex_edges):
+    currentNodeKey= None
+    neighbourNodeKey = None
+    cost=0
+    edgekey=None
+    for key,vertexRef in dictOfVertexObjects.items():
+        if currentNode.isEquals(vertexRef):
+            currentNodeKey = key
+        elif neighbourNodeRef.isEquals(vertexRef):
+            neighbourNodeKey = key
+        else:
+            pass
+    
+    # for key,vertexRef in dictOfVertexObjects.items():
+    #     if neighbourNodeRef.isEquals(vertexRef):
+    #         neighbourNodeKey = key
+    
+    for edgekey,edgeRef in grid_vertex_edges.items():
+        if str(currentNodeKey)+str(neighbourNodeKey) == edgekey:
+            cost = edgeRef.cost
+            
+    return cost
