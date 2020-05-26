@@ -36,7 +36,7 @@ def astar(dictOfVertexObjects,grid_vertex_edges,initialNodeRef,finalNodeRef):
             if bool(currentNode.egdeList[direction]):
                 #If the children is already in the closed set, skip it
                 if neighbourNodeRef in closed_list:
-                    print ("Node has already been visited")
+                    # print ("Node has already been visited")
                     continue
                 
                 if neighbourNodeRef in open_list:
