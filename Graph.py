@@ -33,33 +33,43 @@ def astar(dictOfVertexObjects,grid_vertex_edges,initialNodeRef,finalNodeRef):
 
         # Loop through the node's children/neighbour
         for direction,neighbourNodeRef in currentNode.egdeList.items():
+            # To check if node's children/neighbour are not empty
+            # as boundry nodes will not have children in all direction
             if bool(currentNode.egdeList[direction]):
-                #If the children is already in the closed set, skip it
-                if neighbourNodeRef in closed_list:
-                    # print ("Node has already been visited")
-                    continue
-                
-                if neighbourNodeRef in open_list:
-                    # Check if we beat the G score 
-                    new_g = currentNode.G + move_cost(currentNode,neighbourNodeRef,dictOfVertexObjects,grid_vertex_edges)
-                    if neighbourNodeRef.G > new_g:
-                        #If so, update the node to have a new parent
-                        neighbourNodeRef.G = new_g
+                # Now check if that edge in this direction is accessible 
+                if getEdgeAccessibility(currentNode,currentNode.egdeList[direction],dictOfVertexObjects,grid_vertex_edges) == False:
+                    #If the children is already in the closed set, skip it
+                    if neighbourNodeRef in closed_list:
+                        # print ("Node has already been visited")
+                        continue
+                    
+                    if neighbourNodeRef in open_list:
+                        # Check if we beat the G score 
+                        new_g = currentNode.G + move_cost(currentNode,neighbourNodeRef,dictOfVertexObjects,grid_vertex_edges)
+                        if neighbourNodeRef.G > new_g:
+                            #If so, update the node to have a new parent
+                            neighbourNodeRef.G = new_g
+                            neighbourNodeRef.parent = currentNode
+                    else:
+                        # If it isn't in the open set, calculate the G and H score for the node
+                        neighbourNodeRef.G = currentNode.G + move_cost(currentNode,neighbourNodeRef,dictOfVertexObjects,grid_vertex_edges)
+                        neighbourNodeRef.H = manhattan(neighbourNodeRef, finalNodeRef)
+                        #Set the parent to our current item
                         neighbourNodeRef.parent = currentNode
-                else:
-                    # If it isn't in the open set, calculate the G and H score for the node
-                    neighbourNodeRef.G = currentNode.G + move_cost(currentNode,neighbourNodeRef,dictOfVertexObjects,grid_vertex_edges)
-                    neighbourNodeRef.H = manhattan(neighbourNodeRef, finalNodeRef)
-                    #Set the parent to our current item
-                    neighbourNodeRef.parent = currentNode
-                    #Add it to the set
-                    open_list.append(neighbourNodeRef)
+                        #Add it to the list
+                        open_list.append(neighbourNodeRef)
             else:
                 continue
     raise ValueError('No Path Found')
 
 def manhattan(Vertex1,Vertex2):
     return abs(Vertex1.xCoordinate - Vertex2.xCoordinate) + abs(Vertex1.yCoordinate - Vertex2.yCoordinate)              
+
+# sudo
+# def diagonalDistance(Vertex1,Vertex2):
+#     dx = abs(node.x - goal.x)
+#     dy = abs(node.y - goal.y)
+#     return D * (dx + dy) + (D2 - 2 * D) * min(dx, dy)
 
 class Vertex:
     def __init__(self,X,Y,xdistance,ydistance,gridSize): 
@@ -192,6 +202,7 @@ class Edge:
         self.isRed = False
         self.isGreen = False
         self.isDiagonal = False
+        self.isDisabled = False
 
     def setIsRed(self,decision):
         self.isRed = decision
@@ -204,6 +215,9 @@ class Edge:
 
     def setCost(self,cost):
         self.cost = cost
+
+    def setIsDisabled(self,decision):
+        self.isDisabled = decision
 
 def setHighCrimeAreas(crimeRates,dictOfVertexObjects,gridSize,threshold):
     keysofdict = list(dictOfVertexObjects)
@@ -330,7 +344,11 @@ def setHighCrimeAreas(crimeRates,dictOfVertexObjects,gridSize,threshold):
             # print("For edge" , edgekey , "Cost = " , edge.cost)
         else:
             print("No cost assigned to " , edgekey)
-    # print("Total number of edges ",len(grid_vertex_edges))
+
+    for edgekey,edgeRef in grid_vertex_edges.items():
+        if edgeRef.isRed == True and edgeRef.isGreen == False:
+            edgeRef.setIsDisabled(True)
+    
     return grid_vertex_edges
 
 def searchVertexKeys(startingPoint,finalPoint,dictOfVertexObjects):
@@ -349,7 +367,7 @@ def searchVertexKeys(startingPoint,finalPoint,dictOfVertexObjects):
             vertexKey1 = key
             vertexRef1 = vertex
 
-        elif vertex.xCoordinate == float(x2) and vertex.yCoordinate == float(y2):
+        if vertex.xCoordinate == float(x2) and vertex.yCoordinate == float(y2):
             vertexKey2 = key
             vertexRef2 = vertex
     
@@ -377,3 +395,22 @@ def move_cost(currentNode,neighbourNodeRef,dictOfVertexObjects,grid_vertex_edges
             cost = edgeRef.cost
             
     return cost
+
+def getEdgeAccessibility(currentNode,neighbour,dictOfVertexObjects,grid_vertex_edges):
+    currentKey=None
+    neighbourKey=None
+    for key, ref in dictOfVertexObjects.items():
+        if ref.isEquals(currentNode):
+            currentKey = key 
+        if ref.isEquals(neighbour):
+            neighbourKey = key
+
+    type1 = str(currentKey)+str(neighbourKey)
+    type2 = str(neighbourKey)+str(currentKey)
+    edgeKey = None
+    for key, ref in grid_vertex_edges.items():
+        if key == type1 or key == type2:
+            edgeKey = key
+            break
+    
+    return grid_vertex_edges[edgeKey].isDisabled
