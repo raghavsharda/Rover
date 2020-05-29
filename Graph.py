@@ -6,6 +6,7 @@ def astar(dictOfVertexObjects,grid_vertex_edges,initialNodeRef,finalNodeRef):
     # Initialize both open and closed list
     open_list = []
     closed_list = []
+    touch = []
 
     # Add the start node
     open_list.append(initialNodeRef)
@@ -14,7 +15,7 @@ def astar(dictOfVertexObjects,grid_vertex_edges,initialNodeRef,finalNodeRef):
     while len(open_list) > 0:
         
         # Get the current node
-        currentNode = min(open_list, key=lambda o:o.G + o.H)
+        currentNode = min(open_list, key=lambda o:o.F)
 
         #If it is the item we want, retrace the path and return it
         if currentNode.isEquals(finalNodeRef):
@@ -23,7 +24,9 @@ def astar(dictOfVertexObjects,grid_vertex_edges,initialNodeRef,finalNodeRef):
                 path.append(currentNode)
                 currentNode = currentNode.parent
             path.append(currentNode)
-            return path[::-1]
+            print ("Cost of Path",sum(c.F for c in path))
+            print(path)
+            return path[::-1],touch
         
         #Remove the item from the open set
         open_list.remove(currentNode)
@@ -38,6 +41,7 @@ def astar(dictOfVertexObjects,grid_vertex_edges,initialNodeRef,finalNodeRef):
             if bool(currentNode.egdeList[direction]):
                 # Now check if that edge in this direction is accessible 
                 if getEdgeAccessibility(currentNode,currentNode.egdeList[direction],dictOfVertexObjects,grid_vertex_edges) == False:
+                   
                     #If the children is already in the closed set, skip it
                     if neighbourNodeRef in closed_list:
                         # print ("Node has already been visited")
@@ -50,10 +54,11 @@ def astar(dictOfVertexObjects,grid_vertex_edges,initialNodeRef,finalNodeRef):
                             #If so, update the node to have a new parent
                             neighbourNodeRef.G = new_g
                             neighbourNodeRef.parent = currentNode
-                    else:
+                    if neighbourNodeRef not in open_list and neighbourNodeRef not in closed_list:
                         # If it isn't in the open set, calculate the G and H score for the node
                         neighbourNodeRef.G = currentNode.G + move_cost(currentNode,neighbourNodeRef,dictOfVertexObjects,grid_vertex_edges)
-                        neighbourNodeRef.H = manhattan(neighbourNodeRef, finalNodeRef)
+                        neighbourNodeRef.H = diagonalDistance(neighbourNodeRef, finalNodeRef)
+                        neighbourNodeRef.F = neighbourNodeRef.G + neighbourNodeRef.H
                         #Set the parent to our current item
                         neighbourNodeRef.parent = currentNode
                         #Add it to the list
@@ -65,68 +70,15 @@ def astar(dictOfVertexObjects,grid_vertex_edges,initialNodeRef,finalNodeRef):
 def manhattan(Vertex1,Vertex2):
     return abs(Vertex1.xCoordinate - Vertex2.xCoordinate) + abs(Vertex1.yCoordinate - Vertex2.yCoordinate)              
 
-# sudo
-# def diagonalDistance(Vertex1,Vertex2):
-#     dx = abs(node.x - goal.x)
-#     dy = abs(node.y - goal.y)
-#     return D * (dx + dy) + (D2 - 2 * D) * min(dx, dy)
+def euclidean(Vertex1, Vertex2):
+    return math.sqrt(Vertex1.xCoordinate * Vertex2.xCoordinate + Vertex1.yCoordinate * Vertex2.yCoordinate)
 
-class Vertex:
-    def __init__(self,X,Y,xdistance,ydistance,gridSize): 
-
-        self.parent = None
-        self.xCoordinate = X
-        self.yCoordinate = Y
-        self.H = 0
-        self.G = 0
-        self.F = 0
-        self.neighbours = {'north':{},'north-east':{},'east':{},'south-east':{},'south':{},'south-west':{},'west':{},'north-west':{}}
-        self.egdeList = {'north':{},'north-east':{},'east':{},'south-east':{},'south':{},'south-west':{},'west':{},'north-west':{}}
-        self.createNeighbours(xdistance,gridSize)
-
-    def __str__(self):
-        return str(self.xCoordinate),str(self.yCoordinate)
-
-    def getId(self,X,Y):
-        return self
-
-    def isEquals(self,otherNode):
-        if(self.xCoordinate == otherNode.xCoordinate and self.yCoordinate == otherNode.yCoordinate):
-            return True
-        else:
-            return False
-
-    def createNeighbours(self,distance,gridSize):
-        
-        distance = round(distance,2)
-        northNeighbour=self.yCoordinate+(distance/gridSize)
-        eastNeighbour=self.xCoordinate+(distance/gridSize)
-        southNeighbour=self.yCoordinate-(distance/gridSize)
-        westNeighbour=self.xCoordinate-(distance/gridSize)
-
-        self.neighbours["north"]["xCoordinate"] = round(self.xCoordinate,3)
-        self.neighbours['north']['yCoordinate'] = round(northNeighbour,3)
-
-        self.neighbours["north-east"]["xCoordinate"] = round(eastNeighbour,3)
-        self.neighbours['north-east']['yCoordinate'] = round(northNeighbour,3)
-
-        self.neighbours['east']['xCoordinate'] = round(eastNeighbour,3)
-        self.neighbours['east']['yCoordinate'] = round(self.yCoordinate,3)
-
-        self.neighbours['south-east']['xCoordinate'] = round(eastNeighbour,3)
-        self.neighbours['south-east']['yCoordinate'] = round(southNeighbour,3)
-
-        self.neighbours['south']['xCoordinate'] = round(self.xCoordinate,3)
-        self.neighbours['south']['yCoordinate'] = round(southNeighbour,3)
-
-        self.neighbours['south-west']['xCoordinate'] = round(westNeighbour,3)
-        self.neighbours['south-west']['yCoordinate'] = round(southNeighbour,3)
-
-        self.neighbours['west']['xCoordinate'] = round(westNeighbour,3)
-        self.neighbours['west']['yCoordinate'] = round(self.yCoordinate,3)
-
-        self.neighbours["north-west"]["xCoordinate"] = round(westNeighbour,3)
-        self.neighbours['north-west']['yCoordinate'] = round(northNeighbour,3)
+def diagonalDistance(Vertex1,Vertex2):
+    D = 1.0
+    D2 = 1.5
+    dx = abs(Vertex1.xCoordinate - Vertex2.xCoordinate)
+    dy = abs(Vertex1.yCoordinate - Vertex2.yCoordinate)
+    return D * (dx + dy) + (D2 - 2 * D) * min(dx, dy)
 
 def createVertex(listofcoordinates,xdistance,ydistance,gridSize):
     grid_vertex_objects = {}
@@ -188,40 +140,16 @@ def getKeyforVertex(X,Y):
 def getKeyforEdge(focus,neighbour):
         x = str(focus.xCoordinate) + str(neighbour.xCoordinate)
         y = str(focus.yCoordinate) + str(neighbour.yCoordinate)
-        # key = str(x)+str(y)
         key = x+y
-        # key = key.replace("-", "")
-        # key = key.replace(".", "")
         return key
-
-class Edge:
-    def __init__(self,node1,node2):
-        self.vertex_to = node1
-        self.vertex_from = node2
-        self.cost = 0
-        self.isRed = False
-        self.isGreen = False
-        self.isDiagonal = False
-        self.isDisabled = False
-
-    def setIsRed(self,decision):
-        self.isRed = decision
-
-    def setIsGreen(self,decision):
-        self.isGreen = decision
-
-    def setIsDiagonal(self,decision):
-        self.isDiagonal = decision
-
-    def setCost(self,cost):
-        self.cost = cost
-
-    def setIsDisabled(self,decision):
-        self.isDisabled = decision
 
 def setHighCrimeAreas(crimeRates,dictOfVertexObjects,gridSize,threshold):
     keysofdict = list(dictOfVertexObjects)
     grid_vertex_edges = {}
+    x1b = dictOfVertexObjects[0].xCoordinate
+    x2b = dictOfVertexObjects[keysofdict[-1]].xCoordinate
+    y1b = dictOfVertexObjects[0].yCoordinate
+    y2b = dictOfVertexObjects[keysofdict[-1]].yCoordinate
     edge_id = None
     l = -1
     for crimes in crimeRates:
@@ -346,7 +274,7 @@ def setHighCrimeAreas(crimeRates,dictOfVertexObjects,gridSize,threshold):
             print("No cost assigned to " , edgekey)
 
     for edgekey,edgeRef in grid_vertex_edges.items():
-        if edgeRef.isRed == True and edgeRef.isGreen == False:
+        if (edgeRef.isRed == True and edgeRef.isGreen == False) or (edgeRef.vertex_to.xCoordinate == x1b and edgeRef.vertex_from.xCoordinate == x1b) or (edgeRef.vertex_to.xCoordinate == x2b and edgeRef.vertex_from.xCoordinate == x2b)or (edgeRef.vertex_to.yCoordinate == y1b and edgeRef.vertex_from.yCoordinate == y1b)or (edgeRef.vertex_to.yCoordinate == y2b and edgeRef.vertex_from.yCoordinate == y2b):
             edgeRef.setIsDisabled(True)
     
     return grid_vertex_edges
@@ -381,17 +309,13 @@ def move_cost(currentNode,neighbourNodeRef,dictOfVertexObjects,grid_vertex_edges
     for key,vertexRef in dictOfVertexObjects.items():
         if currentNode.isEquals(vertexRef):
             currentNodeKey = key
-        elif neighbourNodeRef.isEquals(vertexRef):
+        if neighbourNodeRef.isEquals(vertexRef):
             neighbourNodeKey = key
-        else:
-            pass
     
-    # for key,vertexRef in dictOfVertexObjects.items():
-    #     if neighbourNodeRef.isEquals(vertexRef):
-    #         neighbourNodeKey = key
-    
+    type1 = str(currentNodeKey)+str(neighbourNodeKey)
+    type2 = str(neighbourNodeKey)+str(currentNodeKey)
     for edgekey,edgeRef in grid_vertex_edges.items():
-        if str(currentNodeKey)+str(neighbourNodeKey) == edgekey:
+        if type1 == edgekey or type2 == edgekey:
             cost = edgeRef.cost
             
     return cost
@@ -414,3 +338,105 @@ def getEdgeAccessibility(currentNode,neighbour,dictOfVertexObjects,grid_vertex_e
             break
     
     return grid_vertex_edges[edgeKey].isDisabled
+
+def findVertexForInputs(startingPoint,finalPoint,dictOfVertexObjects):
+    
+    startingPoint = str(startingPoint)
+    startingPoint = startingPoint.split(",")
+    finalPoint = str(finalPoint)
+    finalPoint = finalPoint.split(",")
+    startingPoint[0] = float(startingPoint[0])
+    startingPoint[1] = float(startingPoint[1])
+    finalPoint[0] = float(finalPoint[0])
+    finalPoint[1] = float(finalPoint[1])
+
+    minx = None
+    miny = None
+    for key, ref in dictOfVertexObjects.items():
+        if (startingPoint[0] >= ref.xCoordinate and startingPoint[1] >= ref.yCoordinate):
+            minx =  ref
+        if (finalPoint[0] >= ref.xCoordinate and finalPoint[1] >= ref.yCoordinate):
+            miny =  ref
+    return minx,miny
+
+class Edge:
+    def __init__(self,node1,node2):
+        self.vertex_to = node1
+        self.vertex_from = node2
+        self.cost = 0
+        self.isRed = False
+        self.isGreen = False
+        self.isDiagonal = False
+        self.isDisabled = False
+
+    def setIsRed(self,decision):
+        self.isRed = decision
+
+    def setIsGreen(self,decision):
+        self.isGreen = decision
+
+    def setIsDiagonal(self,decision):
+        self.isDiagonal = decision
+
+    def setCost(self,cost):
+        self.cost = cost
+
+    def setIsDisabled(self,decision):
+        self.isDisabled = decision
+
+class Vertex:
+    def __init__(self,X,Y,xdistance,ydistance,gridSize): 
+
+        self.parent = None
+        self.xCoordinate = X
+        self.yCoordinate = Y
+        self.H = 0
+        self.G = 0
+        self.F = 0
+        self.neighbours = {'north':{},'north-east':{},'east':{},'south-east':{},'south':{},'south-west':{},'west':{},'north-west':{}}
+        self.egdeList = {'north':{},'north-east':{},'east':{},'south-east':{},'south':{},'south-west':{},'west':{},'north-west':{}}
+        self.createNeighbours(xdistance,gridSize)
+
+    def __str__(self):
+        return str(self.xCoordinate),str(self.yCoordinate)
+
+    def getId(self,X,Y):
+        return self
+
+    def isEquals(self,otherNode):
+        if(self.xCoordinate == otherNode.xCoordinate and self.yCoordinate == otherNode.yCoordinate):
+            return True
+        else:
+            return False
+
+    def createNeighbours(self,distance,gridSize):
+        
+        distance = round(distance,2)
+        northNeighbour=self.yCoordinate+(distance/gridSize)
+        eastNeighbour=self.xCoordinate+(distance/gridSize)
+        southNeighbour=self.yCoordinate-(distance/gridSize)
+        westNeighbour=self.xCoordinate-(distance/gridSize)
+
+        self.neighbours["north"]["xCoordinate"] = round(self.xCoordinate,3)
+        self.neighbours['north']['yCoordinate'] = round(northNeighbour,3)
+
+        self.neighbours["north-east"]["xCoordinate"] = round(eastNeighbour,3)
+        self.neighbours['north-east']['yCoordinate'] = round(northNeighbour,3)
+
+        self.neighbours['east']['xCoordinate'] = round(eastNeighbour,3)
+        self.neighbours['east']['yCoordinate'] = round(self.yCoordinate,3)
+
+        self.neighbours['south-east']['xCoordinate'] = round(eastNeighbour,3)
+        self.neighbours['south-east']['yCoordinate'] = round(southNeighbour,3)
+
+        self.neighbours['south']['xCoordinate'] = round(self.xCoordinate,3)
+        self.neighbours['south']['yCoordinate'] = round(southNeighbour,3)
+
+        self.neighbours['south-west']['xCoordinate'] = round(westNeighbour,3)
+        self.neighbours['south-west']['yCoordinate'] = round(southNeighbour,3)
+
+        self.neighbours['west']['xCoordinate'] = round(westNeighbour,3)
+        self.neighbours['west']['yCoordinate'] = round(self.yCoordinate,3)
+
+        self.neighbours["north-west"]["xCoordinate"] = round(westNeighbour,3)
+        self.neighbours['north-west']['yCoordinate'] = round(northNeighbour,3)
