@@ -1,3 +1,9 @@
+# -------------------------------------------------------
+# Assignment 1
+# Written by Raghav Sharda 40017344
+# For COMP 472 Section ABJX – Summer 2020
+# --------------------------------------------------------
+
 import numpy as np
 import math
 
@@ -7,7 +13,7 @@ def astar(dictOfVertexObjects,grid_vertex_edges,initialNodeRef,finalNodeRef):
     open_list = []
     closed_list = []
     touch = []
-
+    fcost  = 0
     # Add the start node
     open_list.append(initialNodeRef)
 
@@ -15,7 +21,7 @@ def astar(dictOfVertexObjects,grid_vertex_edges,initialNodeRef,finalNodeRef):
     while len(open_list) > 0:
         
         # Get the current node
-        currentNode = min(open_list, key=lambda o:o.F)
+        currentNode = min(open_list, key=lambda o:o.G)
 
         #If it is the item we want, retrace the path and return it
         if currentNode.isEquals(finalNodeRef):
@@ -23,9 +29,10 @@ def astar(dictOfVertexObjects,grid_vertex_edges,initialNodeRef,finalNodeRef):
             while currentNode.parent:
                 path.append(currentNode)
                 currentNode = currentNode.parent
+                fcost = fcost + currentNode.G
             path.append(currentNode)
-            print ("Cost of Path",sum(c.F for c in path))
-            print(path)
+            print ("Cost of Path ",fcost)
+            # print(path)
             return path[::-1],touch
         
         #Remove the item from the open set

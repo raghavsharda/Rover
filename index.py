@@ -1,3 +1,9 @@
+# -------------------------------------------------------
+# Assignment 1
+# Written by Raghav Sharda 40017344
+# For COMP 472 Section ABJX – Summer 2020
+# --------------------------------------------------------
+
 import numpy as np
 import shapefile as shp
 import matplotlib as mpl
@@ -104,7 +110,7 @@ def examples():
         | Enter the percentage threshold value in the format of 'XX': 50                    |
         | Enter Starting Point Coordinates in the format of '-XX.XXX,XX.XXX':-73.590,45.490 |
         | Enter Final Point Coordinates in the format of '-XX.XXX,XX.XX':-73.590,45.490     |  
-        |                                                                                   |
+        | Maximize the graph window to see it properly                                      |
          ===================================================================================
     """
     print(s)
