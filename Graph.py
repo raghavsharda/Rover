@@ -1,6 +1,6 @@
 # -------------------------------------------------------
 # Assignment 1
-# Written by Raghav Sharda 40017344
+# Written by Raghav Sharda
 # For COMP 472 Section ABJX – Summer 2020
 # --------------------------------------------------------
 
